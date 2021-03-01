@@ -6,6 +6,7 @@ import queue
 import sounddevice as sd
 import vosk
 import sys
+import json
 
 q = queue.Queue()
 
@@ -47,6 +48,18 @@ parser.add_argument(
     '-r', '--samplerate', type=int, help='sampling rate')
 args = parser.parse_args(remaining)
 
+
+from auto_everything.terminal import Terminal
+terminal = Terminal()
+def control(text):
+    print(text)
+    if "open" in text:
+        terminal.run("firefox", wait=False)
+    if "go" in text:
+        terminal.kill("firefox", wait=False)
+    if "hi" in text:
+        print("\n\n\n\n    hi~~~~~~      \n\n\n\n\n")
+
 try:
     if args.model is None:
         args.model = "model"
@@ -77,9 +90,13 @@ try:
                 data = q.get()
                 data = bytes(data)
                 if rec.AcceptWaveform(data):
-                    print(rec.Result())
+                    #print("1: " + rec.Result())
+                    json_data = json.loads(rec.Result())
+                    text = json_data["text"]
+                    control(text)
                 else:
-                    print(rec.PartialResult())
+                    #print("2: " + rec.PartialResult())
+                    pass
                 if dump_fn is not None:
                     dump_fn.write(data)
 
